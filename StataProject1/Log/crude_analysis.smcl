@@ -1,0 +1,295 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}crude_analysis
+       {txt}log:  {res}K:\AUH-DACS-Research\TEMPLATE_Projectstructure\Project1\Code\../Log//crude_analysis.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}22 Aug 2019, 23:22:07
+{txt}
+{com}. * one year follow-up
+. do crude_analysis.do 1
+{txt}
+{com}. 
+. graph drop _all
+{txt}
+{com}. 
+. * Store arguments
+. local longestfollowup = `1'
+{txt}
+{com}. 
+. * Read data for analysis
+. use "${c -(}tmpdata{c )-}/exposure_and_outcome.dta", replace
+{txt}
+{com}. 
+. * Redefine outcome according to longest follow up
+. generate tmp_outcome = outcome
+{txt}
+{com}. replace tmp_outcome = (eventdate <= ${c -(}inclusion{c )-} + 365.25*`longestfollowup' & outcome == 1)
+{txt}(28 real changes made)
+
+{com}. 
+. * Set exit date: at outcome event or administrative censoring
+. generate exit = eventdate
+{txt}
+{com}. replace exit = ${c -(}inclusion{c )-} + 365.25*`longestfollowup' if eventdate > ${c -(}inclusion{c )-} + 365.25*`longestfollowup'
+{txt}(28 real changes made)
+
+{com}. 
+. * Set up for survival analysis - time since inclusion date
+. stset eventdate, failure(tmp_outcome) origin(time ${c -(}inclusion{c )-}) scale(365.25) exit(exit)
+
+     {txt}failure event:  {res}tmp_outcome != 0 & tmp_outcome < .
+{txt}obs. time interval:  {res}(origin, eventdate]
+{txt} exit on or before:  {res}time exit
+    {txt}t for analysis:  {res}(time-origin)/365.25
+            {txt}origin:  {res}time 18993
+
+{txt}{hline 78}
+{res}         40{txt}  total observations
+{res}          0{txt}  exclusions
+{hline 78}
+{res}         40{txt}  observations remaining, representing
+{res}         12{txt}  failures in single-record/single-failure data
+{res}     32.956{txt}  total analysis time at risk and under observation
+                                                at risk from t = {res}        0
+                                     {txt}earliest observed entry t = {res}        0
+                                          {txt}last observed exit t = {res}        1
+{txt}
+{com}. 
+. * Conduct Cox regression
+. stcox exposure
+
+         {txt}failure _d:  {res}tmp_outcome
+   {txt}analysis time _t:  {res}(eventdate-origin)/365.25
+             {txt}origin:  {res}time 18993
+{txt}  exit on or before:  {res}time exit
+
+{txt}Iteration 0:   log likelihood = {res}-42.430897
+{txt}Iteration 1:   log likelihood = {res}-41.872544
+{txt}Iteration 2:   log likelihood = {res}-41.858564
+{txt}Iteration 3:   log likelihood = {res}-41.858542
+{txt}Refining estimates:
+Iteration 0:   log likelihood = {res}-41.858542
+
+{txt}Cox regression -- no ties
+
+No. of subjects = {res}          40                  {txt}Number of obs    =  {res}        40
+{txt}No. of failures = {res}          12
+{txt}Time at risk    = {res} 32.95550992
+                                                {txt}LR chi2({res}1{txt})       =  {res}      1.14
+{txt}Log likelihood  =   {res}-41.858542                  {txt}Prob > chi2      =  {res}    0.2847
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}          _t{col 14}{c |} Haz. Ratio{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 4}exposure {c |}{col 14}{res}{space 2} .4652658{col 26}{space 2} .3604926{col 37}{space 1}   -0.99{col 46}{space 3}0.323{col 54}{space 4} .1019017{col 67}{space 3} 2.124324
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. * Generate Kaplan-Meier plot and export to png
+. sts graph, by(exposure) name(KM`longestfollowup')
+
+         {txt}failure _d:  {res}tmp_outcome
+   {txt}analysis time _t:  {res}(eventdate-origin)/365.25
+             {txt}origin:  {res}time 18993
+{txt}  exit on or before:  {res}time exit
+{txt}
+{com}. graph export "${c -(}output{c )-}/KM`longestfollowup'.png", replace
+{txt}(file ../Output//KM1.png written in PNG format)
+
+{com}. 
+. * Put results in a docx document
+. putdocx begin
+{res}{txt}
+{com}. * Rerun cox put results in docx
+. stcox exposure
+
+         {txt}failure _d:  {res}tmp_outcome
+   {txt}analysis time _t:  {res}(eventdate-origin)/365.25
+             {txt}origin:  {res}time 18993
+{txt}  exit on or before:  {res}time exit
+
+{txt}Iteration 0:   log likelihood = {res}-42.430897
+{txt}Iteration 1:   log likelihood = {res}-41.872544
+{txt}Iteration 2:   log likelihood = {res}-41.858564
+{txt}Iteration 3:   log likelihood = {res}-41.858542
+{txt}Refining estimates:
+Iteration 0:   log likelihood = {res}-41.858542
+
+{txt}Cox regression -- no ties
+
+No. of subjects = {res}          40                  {txt}Number of obs    =  {res}        40
+{txt}No. of failures = {res}          12
+{txt}Time at risk    = {res} 32.95550992
+                                                {txt}LR chi2({res}1{txt})       =  {res}      1.14
+{txt}Log likelihood  =   {res}-41.858542                  {txt}Prob > chi2      =  {res}    0.2847
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}          _t{col 14}{c |} Haz. Ratio{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 4}exposure {c |}{col 14}{res}{space 2} .4652658{col 26}{space 2} .3604926{col 37}{space 1}   -0.99{col 46}{space 3}0.323{col 54}{space 4} .1019017{col 67}{space 3} 2.124324
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. putdocx table reg = etable, title("Cox regression analysis") note("`longestfollowup' year follow-up")
+{res}{txt}
+{com}. * Put Kaplan-Meier plot in docx
+. putdocx paragraph, halign(center)
+{res}{txt}
+{com}. putdocx image "${c -(}output{c )-}/KM`longestfollowup'.png"
+{res}{txt}
+{com}. putdocx pagebreak
+{res}{txt}
+{com}. * Save document
+. putdocx save "${c -(}output{c )-}/results.docx", append
+{res}{txt}
+{com}. 
+. 
+. 
+{txt}end of do-file
+
+{com}. * two year follow-up
+. do crude_analysis.do 2
+{txt}
+{com}. 
+. graph drop _all
+{txt}
+{com}. 
+. * Store arguments
+. local longestfollowup = `1'
+{txt}
+{com}. 
+. * Read data for analysis
+. use "${c -(}tmpdata{c )-}/exposure_and_outcome.dta", replace
+{txt}
+{com}. 
+. * Redefine outcome according to longest follow up
+. generate tmp_outcome = outcome
+{txt}
+{com}. replace tmp_outcome = (eventdate <= ${c -(}inclusion{c )-} + 365.25*`longestfollowup' & outcome == 1)
+{txt}(11 real changes made)
+
+{com}. 
+. * Set exit date: at outcome event or administrative censoring
+. generate exit = eventdate
+{txt}
+{com}. replace exit = ${c -(}inclusion{c )-} + 365.25*`longestfollowup' if eventdate > ${c -(}inclusion{c )-} + 365.25*`longestfollowup'
+{txt}(11 real changes made)
+
+{com}. 
+. * Set up for survival analysis - time since inclusion date
+. stset eventdate, failure(tmp_outcome) origin(time ${c -(}inclusion{c )-}) scale(365.25) exit(exit)
+
+     {txt}failure event:  {res}tmp_outcome != 0 & tmp_outcome < .
+{txt}obs. time interval:  {res}(origin, eventdate]
+{txt} exit on or before:  {res}time exit
+    {txt}t for analysis:  {res}(time-origin)/365.25
+            {txt}origin:  {res}time 18993
+
+{txt}{hline 78}
+{res}         40{txt}  total observations
+{res}          0{txt}  exclusions
+{hline 78}
+{res}         40{txt}  observations remaining, representing
+{res}         29{txt}  failures in single-record/single-failure data
+{res}     53.477{txt}  total analysis time at risk and under observation
+                                                at risk from t = {res}        0
+                                     {txt}earliest observed entry t = {res}        0
+                                          {txt}last observed exit t = {res}        2
+{txt}
+{com}. 
+. * Conduct Cox regression
+. stcox exposure
+
+         {txt}failure _d:  {res}tmp_outcome
+   {txt}analysis time _t:  {res}(eventdate-origin)/365.25
+             {txt}origin:  {res}time 18993
+{txt}  exit on or before:  {res}time exit
+
+{txt}Iteration 0:   log likelihood = {res}-92.862784
+{txt}Iteration 1:   log likelihood = {res}-92.762626
+{txt}Iteration 2:   log likelihood = {res}-92.762503
+{txt}Refining estimates:
+Iteration 0:   log likelihood = {res}-92.762503
+
+{txt}Cox regression -- Breslow method for ties
+
+No. of subjects = {res}          40                  {txt}Number of obs    =  {res}        40
+{txt}No. of failures = {res}          29
+{txt}Time at risk    = {res}  53.4770705
+                                                {txt}LR chi2({res}1{txt})       =  {res}      0.20
+{txt}Log likelihood  =   {res}-92.762503                  {txt}Prob > chi2      =  {res}    0.6543
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}          _t{col 14}{c |} Haz. Ratio{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 4}exposure {c |}{col 14}{res}{space 2} .8320423{col 26}{space 2} .3461467{col 37}{space 1}   -0.44{col 46}{space 3}0.659{col 54}{space 4} .3681528{col 67}{space 3} 1.880454
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. * Generate Kaplan-Meier plot and export to png
+. sts graph, by(exposure) name(KM`longestfollowup')
+
+         {txt}failure _d:  {res}tmp_outcome
+   {txt}analysis time _t:  {res}(eventdate-origin)/365.25
+             {txt}origin:  {res}time 18993
+{txt}  exit on or before:  {res}time exit
+{txt}
+{com}. graph export "${c -(}output{c )-}/KM`longestfollowup'.png", replace
+{txt}(file ../Output//KM2.png written in PNG format)
+
+{com}. 
+. * Put results in a docx document
+. putdocx begin
+{res}{txt}
+{com}. * Rerun cox put results in docx
+. stcox exposure
+
+         {txt}failure _d:  {res}tmp_outcome
+   {txt}analysis time _t:  {res}(eventdate-origin)/365.25
+             {txt}origin:  {res}time 18993
+{txt}  exit on or before:  {res}time exit
+
+{txt}Iteration 0:   log likelihood = {res}-92.862784
+{txt}Iteration 1:   log likelihood = {res}-92.762626
+{txt}Iteration 2:   log likelihood = {res}-92.762503
+{txt}Refining estimates:
+Iteration 0:   log likelihood = {res}-92.762503
+
+{txt}Cox regression -- Breslow method for ties
+
+No. of subjects = {res}          40                  {txt}Number of obs    =  {res}        40
+{txt}No. of failures = {res}          29
+{txt}Time at risk    = {res}  53.4770705
+                                                {txt}LR chi2({res}1{txt})       =  {res}      0.20
+{txt}Log likelihood  =   {res}-92.762503                  {txt}Prob > chi2      =  {res}    0.6543
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}          _t{col 14}{c |} Haz. Ratio{col 26}   Std. Err.{col 38}      z{col 46}   P>|z|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 4}exposure {c |}{col 14}{res}{space 2} .8320423{col 26}{space 2} .3461467{col 37}{space 1}   -0.44{col 46}{space 3}0.659{col 54}{space 4} .3681528{col 67}{space 3} 1.880454
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. putdocx table reg = etable, title("Cox regression analysis") note("`longestfollowup' year follow-up")
+{res}{txt}
+{com}. * Put Kaplan-Meier plot in docx
+. putdocx paragraph, halign(center)
+{res}{txt}
+{com}. putdocx image "${c -(}output{c )-}/KM`longestfollowup'.png"
+{res}{txt}
+{com}. putdocx pagebreak
+{res}{txt}
+{com}. * Save document
+. putdocx save "${c -(}output{c )-}/results.docx", append
+{res}{txt}
+{com}. 
+. 
+. 
+{txt}end of do-file
+
+{com}. log close crude_analysis
+      {txt}name:  {res}crude_analysis
+       {txt}log:  {res}K:\AUH-DACS-Research\TEMPLATE_Projectstructure\Project1\Code\../Log//crude_analysis.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}22 Aug 2019, 23:22:44
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

@@ -1,0 +1,45 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}exposure_and_outcome
+       {txt}log:  {res}K:\AUH-DACS-Research\TEMPLATE_Projectstructure\Project1\Code\../Log//exposure_and_outcome.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}22 Aug 2019, 23:21:45
+{txt}
+{com}. do exposure_and_outcome.do
+{txt}
+{com}. 
+. 
+. 
+. * Read LPR data
+. use "${c -(}LPRdata{c )-}/lpr_adm.dta", replace
+{txt}
+{com}. 
+. * Exposure: Incident ICD10 A*** diagnosis compared to incident ICD10 B*** and C***
+. generate exposure = regexm(C_ADIAG,"^DA")
+{txt}
+{com}. 
+. * Outcome: ???
+. generate outcome = 1
+{txt}
+{com}. 
+. * Time to outcome event
+. generate eventdate = D_UDDTO
+{txt}
+{com}. format %td eventdate 
+{txt}
+{com}. 
+. * Save modified data
+. save "${c -(}tmpdata{c )-}/exposure_and_outcome.dta", replace
+{txt}file ../TempData//exposure_and_outcome.dta saved
+
+{com}. 
+{txt}end of do-file
+
+{com}. log close exposure_and_outcome
+      {txt}name:  {res}exposure_and_outcome
+       {txt}log:  {res}K:\AUH-DACS-Research\TEMPLATE_Projectstructure\Project1\Code\../Log//exposure_and_outcome.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}22 Aug 2019, 23:21:45
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
